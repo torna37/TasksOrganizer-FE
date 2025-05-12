@@ -9,6 +9,7 @@ import TaskListCard from '@/components/TaskListCard';
 import TaskListCreationModal from '@/components/TaskListCreationModal';
 import { TaskListApi } from '@/services/api/taskListApi';
 import { TaskList } from '@/types/models';
+import { auth } from '@/services/firebase';
 
 const TaskListDashboard: React.FC = () => {
   const [taskLists, setTaskLists] = useState<TaskList[]>([]);
@@ -20,6 +21,15 @@ const TaskListDashboard: React.FC = () => {
   useEffect(() => {
     loadTaskLists();
   }, []);
+
+
+  const user = auth.currentUser;
+
+  useEffect(() => { 
+    if (user) {
+      console.log("user: ", user);
+    }
+  } )
 
   const loadTaskLists = async () => {
     try {
