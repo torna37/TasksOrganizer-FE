@@ -655,3 +655,27 @@ const SidebarMenuSubButton = React.forwardRef<
   )
 })
 SidebarMenuSubButton.displayName = "SidebarMenuSubButton"
+
+export {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarRail,
+  SidebarInset,
+  SidebarInput,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupAction,
+  SidebarGroupContent,
+  SidebarMenuAction,
+  SidebarMenuBadge,
+  SidebarMenuSkeleton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+  SidebarSeparator,
+};
