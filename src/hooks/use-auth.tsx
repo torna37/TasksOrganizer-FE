@@ -5,9 +5,10 @@ import { auth } from "@/services/firebase";
 type AuthContextType = {
   user: FirebaseUser | null | undefined;
   loading: boolean;
+  logout: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType>({ user: undefined, loading: true });
+const AuthContext = createContext<AuthContextType>({ user: undefined, loading: true, logout: async () => {} });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<FirebaseUser | null | undefined>(undefined);
@@ -21,8 +22,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  const logout = async () => {
+    await auth.signOut();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );

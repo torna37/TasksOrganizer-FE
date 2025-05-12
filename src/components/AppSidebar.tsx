@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -15,10 +14,13 @@ import { LayoutDashboard, ListOrdered, Plus } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { TaskList } from '@/types/models';
 import { TaskListApi } from '@/services/api/taskListApi';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/use-auth';
 
 const AppSidebar: React.FC = () => {
   const [taskLists, setTaskLists] = useState<TaskList[]>([]);
   const location = useLocation();
+  const { logout } = useAuth();
   
   useEffect(() => {
     const fetchTaskLists = async () => {
@@ -88,8 +90,11 @@ const AppSidebar: React.FC = () => {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="flex justify-end p-2">
+      <SidebarFooter className="flex flex-row justify-between items-center p-2 gap-2">
         <ThemeToggle />
+        <Button variant="outline" size="sm" onClick={logout}>
+          Log out
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );
