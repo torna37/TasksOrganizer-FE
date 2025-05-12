@@ -1,4 +1,3 @@
-
 // This file contains mock implementations of TaskApi functions.
 // In a real app, these would make API calls to a backend.
 

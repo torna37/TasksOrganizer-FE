@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,8 +6,8 @@ import { Plus, ArrowLeft, CheckSquare, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { TaskApi } from '@/services/api/taskApi';
 import { TaskListApi } from '@/services/api/taskListApi';
-import { Task, TaskList, TaskOccurrence } from '@/types/models';
-import TaskCreationModal from '@/components/TaskCreationModal';
+import { Task, TaskList, TaskOccurrence, RecurrenceRule } from '@/types/models';
+import TaskCreationModal from '@/components/task/TaskCreationModal';
 import TaskGroup from '@/components/TaskGroup';
 import { 
   DropdownMenu,
@@ -71,9 +70,12 @@ const TaskListView: React.FC = () => {
     }
   };
 
-  const handleCreateTask = async (task: Omit<Task, 'id'>, recurrenceRule?: any) => {
+  const handleCreateTask = async (
+    task: Omit<Task, 'id'>, 
+    recurrenceRule?: Omit<RecurrenceRule, 'id' | 'taskId'>
+  ): Promise<void> => {
     try {
-      const newTask = await TaskApi.createTask(task, recurrenceRule);
+      await TaskApi.createTask(task, recurrenceRule);
       
       // For simplicity, reload tasks after creating one
       // In a real app with optimistic UI updates, we'd add the task to state directly
@@ -86,7 +88,6 @@ const TaskListView: React.FC = () => {
         description: 'Task created successfully',
       });
       
-      return newTask;
     } catch (error) {
       console.error('Failed to create task:', error);
       toast({
