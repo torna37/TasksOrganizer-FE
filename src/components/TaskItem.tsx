@@ -20,14 +20,14 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, occurrence, onComplete, class
   today.setHours(0, 0, 0, 0);
 
   // Calculate if task is overdue
-  const isOverdue = taskDueDate < today && !occurrence.completed;
+  const isOverdue = taskDueDate < today && !occurrence.isCompleted;
 
   // Format the due date
   const dueDate = format(taskDueDate, 'MMM d');
   
   // Handle checkbox click
   const handleCheckboxClick = () => {
-    onComplete(occurrence.id, !occurrence.completed);
+    onComplete(occurrence.id, !occurrence.isCompleted);
   };
 
   return (
@@ -47,7 +47,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, occurrence, onComplete, class
       <Card 
         className={cn(
           "overflow-hidden transition-all hover:shadow-md",
-          occurrence.completed && "opacity-75",
+          occurrence.isCompleted && "opacity-75",
           isOverdue && "border-red-300 dark:border-red-900",
           className
         )}
@@ -56,7 +56,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, occurrence, onComplete, class
           <div className="flex items-center p-3">
             <div 
               role="checkbox"
-              aria-checked={occurrence.completed}
+              aria-checked={occurrence.isCompleted}
               tabIndex={0}
               onClick={handleCheckboxClick}
               onKeyDown={(e) => {
@@ -66,18 +66,18 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, occurrence, onComplete, class
               }}
               className={cn(
                 "flex-shrink-0 mr-3 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors",
-                occurrence.completed 
+                occurrence.isCompleted 
                   ? "bg-primary border-primary text-primary-foreground" 
                   : "border-muted-foreground hover:border-primary"
               )}
             >
-              {occurrence.completed && <Check className="h-3 w-3" />}
+              {occurrence.isCompleted && <Check className="h-3 w-3" />}
             </div>
             
             <div className="flex-1 min-w-0">
               <p className={cn(
                 "text-sm font-medium line-clamp-1",
-                occurrence.completed && "line-through text-muted-foreground"
+                occurrence.isCompleted && "line-through text-muted-foreground"
               )}>
                 {task.title}
               </p>
@@ -85,7 +85,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, occurrence, onComplete, class
               {task.description && (
                 <p className={cn(
                   "text-xs text-muted-foreground line-clamp-1",
-                  occurrence.completed && "line-through"
+                  occurrence.isCompleted && "line-through"
                 )}>
                   {task.description}
                 </p>
@@ -96,7 +96,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, occurrence, onComplete, class
               className={cn(
                 "flex items-center text-xs ml-2",
                 isOverdue ? "text-red-500 dark:text-red-400" : "text-muted-foreground",
-                occurrence.completed && "text-muted-foreground"
+                occurrence.isCompleted && "text-muted-foreground"
               )}
             >
               <Clock className="h-3 w-3 mr-1" />
