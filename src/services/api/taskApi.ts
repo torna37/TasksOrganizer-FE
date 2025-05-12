@@ -1,188 +1,221 @@
 
-import { Task, TaskOccurrence, RecurrenceRule } from '@/types/models';
+// This file contains mock implementations of TaskApi functions.
+// In a real app, these would make API calls to a backend.
 
-// Mock data
-const mockTasks: Task[] = [
+import { Task, TaskOccurrence, RecurrenceRule } from '@/types/models';
+import { v4 as uuidv4 } from 'uuid';
+import { addDays, addWeeks, addMonths, addYears, subDays } from 'date-fns';
+
+let tasks: Task[] = [
   {
     id: '1',
     taskListId: '1',
-    title: 'Complete project proposal',
-    description: 'Finish the draft and send it for review',
-    isRecurring: false,
-    dueDate: new Date(2025, 4, 17),
+    title: 'Team meeting',
+    description: 'Discuss project roadmap',
+    isRecurring: true,
   },
   {
     id: '2',
     taskListId: '1',
-    title: 'Team meeting',
-    description: 'Weekly sync with the team',
-    isRecurring: true,
+    title: 'Submit expense report',
+    description: 'For May business trip',
+    dueDate: new Date('2025-05-20'),
+    isRecurring: false,
   },
   {
     id: '3',
-    taskListId: '1',
-    title: 'Review pull requests',
-    isRecurring: false,
-    dueDate: new Date(2025, 4, 15),
-  },
-  {
-    id: '4',
     taskListId: '2',
-    title: 'Shopping list',
-    description: 'Buy groceries for the week',
-    isRecurring: true,
-  },
-  {
-    id: '5',
-    taskListId: '2',
-    title: 'Pay bills',
-    description: 'Electricity and internet',
+    title: 'Buy groceries',
+    description: 'Milk, eggs, bread',
+    dueDate: new Date('2025-05-15'),
     isRecurring: false,
-    dueDate: new Date(2025, 4, 20),
   },
 ];
 
-const mockRecurrenceRules: RecurrenceRule[] = [
+let recurrenceRules: RecurrenceRule[] = [
   {
     id: '1',
-    taskId: '2',
+    taskId: '1',
     frequency: 'weekly',
     interval: 1,
     daysOfWeek: [1], // Monday
   },
-  {
-    id: '2',
-    taskId: '4',
-    frequency: 'monthly',
-    interval: 1,
-    daysOfMonth: [1], // 1st of month
-  }
 ];
 
-// Generate occurrences based on tasks and recurrence rules
-const generateMockOccurrences = () => {
+let taskOccurrences: TaskOccurrence[] = [
+  {
+    id: '1',
+    taskId: '1',
+    dueDate: addDays(new Date(), 0), // Today
+    isCompleted: false,
+  },
+  {
+    id: '2',
+    taskId: '1',
+    dueDate: addDays(new Date(), 7), // Next week
+    isCompleted: false,
+  },
+  {
+    id: '3',
+    taskId: '1',
+    dueDate: addDays(new Date(), 14), // Two weeks from now
+    isCompleted: false,
+  },
+  {
+    id: '4',
+    taskId: '2',
+    dueDate: new Date('2025-05-20'),
+    isCompleted: false,
+  },
+  {
+    id: '5',
+    taskId: '3',
+    dueDate: new Date('2025-05-15'),
+    isCompleted: true,
+  },
+  {
+    id: '6',
+    taskId: '3',
+    dueDate: subDays(new Date(), 2), // Two days ago (overdue)
+    isCompleted: false,
+  },
+];
+
+// Utility to generate occurrences based on recurrence rule
+const generateOccurrences = (task: Task, rule: RecurrenceRule, startDate: Date, count = 10): TaskOccurrence[] => {
   const occurrences: TaskOccurrence[] = [];
+  let currentDate = new Date(startDate);
   
-  // Add non-recurring tasks directly
-  mockTasks
-    .filter(task => !task.isRecurring)
-    .forEach(task => {
-      if (task.dueDate) {
-        occurrences.push({
-          id: `occ-${task.id}-1`,
-          taskId: task.id,
-          dueDate: task.dueDate,
-          completed: false
-        });
-      }
+  for (let i = 0; i < count; i++) {
+    occurrences.push({
+      id: uuidv4(),
+      taskId: task.id,
+      dueDate: new Date(currentDate),
+      isCompleted: false,
     });
-  
-  // Generate occurrences for recurring tasks
-  mockTasks
-    .filter(task => task.isRecurring)
-    .forEach(task => {
-      const rule = mockRecurrenceRules.find(r => r.taskId === task.id);
-      if (rule) {
-        const today = new Date();
-        
-        // Generate for the next few weeks/months
-        if (rule.frequency === 'weekly') {
-          for (let i = 0; i < 5; i++) {
-            const dueDate = new Date();
-            dueDate.setDate(today.getDate() + (i * 7) + ((rule.daysOfWeek?.[0] || 0) - today.getDay()));
-            
-            occurrences.push({
-              id: `occ-${task.id}-${i}`,
-              taskId: task.id,
-              dueDate,
-              completed: i === 0 && task.id === '2' // Mark the first meeting as completed for demo
-            });
-          }
-        } else if (rule.frequency === 'monthly') {
-          for (let i = 0; i < 3; i++) {
-            const dueDate = new Date();
-            dueDate.setMonth(today.getMonth() + i);
-            dueDate.setDate(rule.daysOfMonth?.[0] || 1);
-            
-            occurrences.push({
-              id: `occ-${task.id}-${i}`,
-              taskId: task.id,
-              dueDate,
-              completed: false
-            });
-          }
-        }
-      }
-    });
+    
+    switch (rule.frequency) {
+      case 'daily':
+        currentDate = addDays(currentDate, rule.interval);
+        break;
+      case 'weekly':
+        currentDate = addWeeks(currentDate, rule.interval);
+        break;
+      case 'monthly':
+        currentDate = addMonths(currentDate, rule.interval);
+        break;
+      case 'yearly':
+        currentDate = addYears(currentDate, rule.interval);
+        break;
+    }
+  }
   
   return occurrences;
 };
 
-// API
 export const TaskApi = {
+  // Get tasks for a specific list
   getTasksByListId: async (listId: string): Promise<Task[]> => {
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
-    return mockTasks.filter(task => task.taskListId === listId);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const filtered = tasks.filter(task => task.taskListId === listId);
+        resolve(filtered);
+      }, 500);
+    });
   },
-
+  
+  // Get all tasks
   getAllTasks: async (userId?: string): Promise<Task[]> => {
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
-    return mockTasks; // In a real app, filter by userId if provided
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(tasks);
+      }, 500);
+    });
   },
   
+  // Get task occurrences for a specific list
   getTaskOccurrencesByListId: async (listId: string): Promise<TaskOccurrence[]> => {
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
-    const occurrences = generateMockOccurrences();
-    const listTasks = mockTasks.filter(task => task.taskListId === listId);
-    return occurrences.filter(occ => listTasks.some(task => task.id === occ.taskId));
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const listTasks = tasks.filter(task => task.taskListId === listId);
+        const listTaskIds = listTasks.map(task => task.id);
+        const filtered = taskOccurrences.filter(occurrence => 
+          listTaskIds.includes(occurrence.taskId)
+        );
+        resolve(filtered);
+      }, 500);
+    });
   },
-
+  
+  // Get all task occurrences
   getAllTaskOccurrences: async (userId?: string): Promise<TaskOccurrence[]> => {
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
-    return generateMockOccurrences(); // In a real app, filter by userId if provided
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(taskOccurrences);
+      }, 500);
+    });
   },
   
-  completeTaskOccurrence: async (occurrenceId: string, completed: boolean): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
-    // In a real app, update the completion status in the database
-    console.log(`Task occurrence ${occurrenceId} marked as ${completed ? 'completed' : 'incomplete'}`);
+  // Mark a task occurrence as complete/incomplete
+  completeTaskOccurrence: async (occurrenceId: string, completed: boolean): Promise<TaskOccurrence> => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const occurrenceIndex = taskOccurrences.findIndex(o => o.id === occurrenceId);
+        
+        if (occurrenceIndex !== -1) {
+          taskOccurrences[occurrenceIndex] = {
+            ...taskOccurrences[occurrenceIndex],
+            isCompleted: completed,
+          };
+          
+          resolve(taskOccurrences[occurrenceIndex]);
+        } else {
+          reject(new Error('Task occurrence not found'));
+        }
+      }, 500);
+    });
   },
   
-  createTask: async (
-    task: Omit<Task, "id">, 
-    recurrenceRule?: Omit<RecurrenceRule, "id" | "taskId">
-  ): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
-    
-    // In a real app, this would save to a database
-    const newId = `${mockTasks.length + 1}`;
-    const newTask: Task = {
-      id: newId,
-      ...task
-    };
-    
-    mockTasks.push(newTask);
-    
-    // If there's a recurrence rule, add it to the rules
-    if (recurrenceRule && task.isRecurring) {
-      const newRuleId = `${mockRecurrenceRules.length + 1}`;
-      mockRecurrenceRules.push({
-        id: newRuleId,
-        taskId: newId,
-        ...recurrenceRule
-      });
-    }
-    
-    console.log('New task created:', newTask);
+  // Create a new task
+  createTask: async (task: Omit<Task, 'id'>, recurrenceRule?: Omit<RecurrenceRule, 'id' | 'taskId'>): Promise<Task> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const newTaskId = uuidv4();
+        
+        const newTask: Task = {
+          id: newTaskId,
+          ...task,
+        };
+        
+        tasks.push(newTask);
+        
+        if (task.isRecurring && recurrenceRule) {
+          const newRule: RecurrenceRule = {
+            id: uuidv4(),
+            taskId: newTaskId,
+            ...recurrenceRule,
+          };
+          
+          recurrenceRules.push(newRule);
+          
+          // Generate occurrences based on the recurrence rule
+          const startDate = task.dueDate || new Date();
+          const newOccurrences = generateOccurrences(newTask, newRule, startDate);
+          taskOccurrences = [...taskOccurrences, ...newOccurrences];
+        } else if (!task.isRecurring && task.dueDate) {
+          // For non-recurring tasks, create a single occurrence
+          const newOccurrence: TaskOccurrence = {
+            id: uuidv4(),
+            taskId: newTaskId,
+            dueDate: task.dueDate,
+            isCompleted: false,
+          };
+          
+          taskOccurrences.push(newOccurrence);
+        }
+        
+        resolve(newTask);
+      }, 500);
+    });
   },
-  
-  updateTask: async (task: Task): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
-    
-    // Find and update the task
-    const index = mockTasks.findIndex(t => t.id === task.id);
-    if (index > -1) {
-      mockTasks[index] = { ...task };
-    }
-  }
 };

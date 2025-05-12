@@ -16,9 +16,10 @@ import { RecurrenceRule } from '@/types/models';
 interface RecurrenceEditorProps {
   value?: RecurrenceRule;
   onChange: (rule: RecurrenceRule) => void;
+  showAdvanced?: boolean;
 }
 
-const RecurrenceEditor: React.FC<RecurrenceEditorProps> = ({ value, onChange }) => {
+const RecurrenceEditor: React.FC<RecurrenceEditorProps> = ({ value, onChange, showAdvanced = false }) => {
   const [rule, setRule] = useState<RecurrenceRule>({
     id: '',
     taskId: '',
@@ -46,46 +47,48 @@ const RecurrenceEditor: React.FC<RecurrenceEditorProps> = ({ value, onChange }) 
   
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="frequency">Frequency</Label>
-          <Select
-            value={rule.frequency}
-            onValueChange={(val: 'daily' | 'weekly' | 'monthly' | 'yearly') => 
-              handleChange({ frequency: val })
-            }
-          >
-            <SelectTrigger id="frequency">
-              <SelectValue placeholder="Select frequency" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
-              <SelectItem value="yearly">Yearly</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <Label htmlFor="interval">Every</Label>
-          <div className="flex items-center">
-            <Input
-              id="interval"
-              type="number"
-              min={1}
-              value={rule.interval}
-              onChange={e => handleChange({ interval: parseInt(e.target.value) || 1 })}
-              className="w-20"
-            />
-            <span className="ml-2 text-muted-foreground">
-              {rule.interval === 1 
-                ? rule.frequency.slice(0, -2) 
-                : rule.frequency}
-            </span>
+      {showAdvanced && (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="frequency">Frequency</Label>
+            <Select
+              value={rule.frequency}
+              onValueChange={(val: 'daily' | 'weekly' | 'monthly' | 'yearly') => 
+                handleChange({ frequency: val })
+              }
+            >
+              <SelectTrigger id="frequency">
+                <SelectValue placeholder="Select frequency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+                <SelectItem value="yearly">Yearly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="interval">Every</Label>
+            <div className="flex items-center">
+              <Input
+                id="interval"
+                type="number"
+                min={1}
+                value={rule.interval}
+                onChange={e => handleChange({ interval: parseInt(e.target.value) || 1 })}
+                className="w-20"
+              />
+              <span className="ml-2 text-muted-foreground">
+                {rule.interval === 1 
+                  ? rule.frequency.slice(0, -2) 
+                  : rule.frequency}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
       
       {/* Days of the week selector (for weekly) */}
       {rule.frequency === 'weekly' && (

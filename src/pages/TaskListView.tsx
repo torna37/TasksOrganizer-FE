@@ -42,8 +42,8 @@ const TaskListView: React.FC = () => {
     try {
       const [list, taskData, occurrenceData] = await Promise.all([
         TaskListApi.getTaskList(taskListId),
-        TaskApi.getTasksForList(taskListId),
-        TaskApi.getTaskOccurrences(taskListId)
+        TaskApi.getTasksByListId(taskListId),
+        TaskApi.getTaskOccurrencesByListId(taskListId)
       ]);
       
       if (!list) {
@@ -99,8 +99,6 @@ const TaskListView: React.FC = () => {
   };
 
   const handleCompleteTask = async (occurrenceId: string, completed: boolean) => {
-    if (!completed) return; // We only handle completion, not un-completion
-
     try {
       // Optimistic UI update
       setOccurrences(prev => 
@@ -109,7 +107,7 @@ const TaskListView: React.FC = () => {
         )
       );
       
-      await TaskApi.completeTaskOccurrence(occurrenceId, 'current-user');
+      await TaskApi.completeTaskOccurrence(occurrenceId, completed);
       
       toast({
         title: 'Success',
