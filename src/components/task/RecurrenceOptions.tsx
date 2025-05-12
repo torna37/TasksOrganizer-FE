@@ -1,25 +1,46 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Label } from "@/components/ui/label";
-import { Switch } from '@/components/ui/switch';
 import RecurrenceEditor from '../recurrence/RecurrenceEditor';
-import SimpleRecurrenceEditor from '../recurrence/SimpleRecurrenceEditor';
 import { RecurrenceRule } from '@/types/models';
 
 interface RecurrenceOptionsProps {
-  multipleSelection: boolean;
-  setMultipleSelection: (value: boolean) => void;
   recurrenceRule: RecurrenceRule;
   setRecurrenceRule: (rule: RecurrenceRule) => void;
+  dueDate: Date | undefined;
 }
 
 const RecurrenceOptions: React.FC<RecurrenceOptionsProps> = ({
-  multipleSelection,
-  setMultipleSelection,
   recurrenceRule,
-  setRecurrenceRule
+  setRecurrenceRule,
+  dueDate
 }) => {
+  // Set up initial day selections based on dueDate when frequency changes
+  useEffect(() => {
+    if (dueDate && recurrenceRule.frequency) {
+      const updatedRule = { ...recurrenceRule };
+      
+      // For weekly frequency, automatically select the day of the first occurrence
+      if (recurrenceRule.frequency === 'weekly') {
+        const dayOfWeek = dueDate.getDay(); // 0-6, Sunday-Saturday
+        if (!updatedRule.daysOfWeek?.includes(dayOfWeek)) {
+          updatedRule.daysOfWeek = [...(updatedRule.daysOfWeek || []), dayOfWeek];
+          setRecurrenceRule(updatedRule);
+        }
+      }
+      
+      // For yearly frequency, automatically select the month of the first occurrence
+      if (recurrenceRule.frequency === 'yearly') {
+        const monthOfYear = dueDate.getMonth() + 1; // 1-12, January-December
+        if (!updatedRule.monthsOfYear?.includes(monthOfYear)) {
+          updatedRule.monthsOfYear = [...(updatedRule.monthsOfYear || []), monthOfYear];
+          setRecurrenceRule(updatedRule);
+        }
+      }
+    }
+  }, [dueDate, recurrenceRule.frequency]);
+
   return (
     <motion.div
       key="recurrence-options"
@@ -29,30 +50,16 @@ const RecurrenceOptions: React.FC<RecurrenceOptionsProps> = ({
       transition={{ duration: 0.2 }}
     >
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
+        <div>
           <Label>Recurrence Options</Label>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="multiple"
-              checked={multipleSelection}
-              onCheckedChange={setMultipleSelection}
-            />
-            <Label htmlFor="multiple">Multiple selections</Label>
-          </div>
         </div>
 
-        {multipleSelection ? (
-          <RecurrenceEditor
-            value={recurrenceRule}
-            onChange={setRecurrenceRule}
-            showAdvanced={true}
-          />
-        ) : (
-          <SimpleRecurrenceEditor
-            value={recurrenceRule}
-            onChange={setRecurrenceRule}
-          />
-        )}
+        <RecurrenceEditor
+          value={recurrenceRule}
+          onChange={setRecurrenceRule}
+          showAdvanced={true}
+          dueDate={dueDate}
+        />
       </div>
     </motion.div>
   );

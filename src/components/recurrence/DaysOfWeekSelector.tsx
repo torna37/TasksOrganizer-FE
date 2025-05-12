@@ -6,15 +6,20 @@ import { Label } from '@/components/ui/label';
 interface DaysOfWeekSelectorProps {
   selectedDays: number[];
   onChange: (days: number[]) => void;
+  fixedDay?: number; // Day that should be checked and disabled
 }
 
 const DaysOfWeekSelector: React.FC<DaysOfWeekSelectorProps> = ({ 
   selectedDays, 
-  onChange 
+  onChange,
+  fixedDay = -1
 }) => {
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   
   const handleDayChange = (index: number, checked: boolean | "indeterminate") => {
+    // Don't allow changes to fixed day
+    if (index === fixedDay) return;
+    
     const daysOfWeek = [...selectedDays];
     if (checked === true) {
       if (!daysOfWeek.includes(index)) {
@@ -37,15 +42,24 @@ const DaysOfWeekSelector: React.FC<DaysOfWeekSelectorProps> = ({
           <div key={day} className="flex items-center space-x-2">
             <Checkbox
               id={`day-${index}`}
-              checked={selectedDays.includes(index)}
+              checked={selectedDays.includes(index) || index === fixedDay}
               onCheckedChange={(checked) => handleDayChange(index, checked)}
+              disabled={index === fixedDay}
             />
-            <Label htmlFor={`day-${index}`} className="text-sm">
+            <Label 
+              htmlFor={`day-${index}`} 
+              className={`text-sm ${index === fixedDay ? 'opacity-70' : ''}`}
+            >
               {day.slice(0, 3)}
             </Label>
           </div>
         ))}
       </div>
+      {fixedDay > -1 && (
+        <p className="text-xs text-muted-foreground mt-2">
+          {days[fixedDay]} is the day of the first occurrence and cannot be changed.
+        </p>
+      )}
     </div>
   );
 };

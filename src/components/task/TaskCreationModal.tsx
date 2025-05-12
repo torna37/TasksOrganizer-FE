@@ -31,7 +31,6 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
   const [description, setDescription] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
-  const [multipleSelection, setMultipleSelection] = useState(false);
   const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule>({
     id: '',
     taskId: '',
@@ -45,7 +44,6 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
     setDescription('');
     setIsRecurring(false);
     setDueDate(undefined);
-    setMultipleSelection(false);
     setRecurrenceRule({
       id: '',
       taskId: '',
@@ -103,10 +101,9 @@ const TaskCreationModal: React.FC<TaskCreationModalProps> = ({
           <AnimatePresence>
             {isRecurring && (
               <RecurrenceOptions
-                multipleSelection={multipleSelection}
-                setMultipleSelection={setMultipleSelection}
                 recurrenceRule={recurrenceRule}
                 setRecurrenceRule={setRecurrenceRule}
+                dueDate={dueDate}
               />
             )}
           </AnimatePresence>
