@@ -1,36 +1,30 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { auth } from "@/services/firebase";
+import { create } from "zustand";
 
-type AuthContextType = {
+interface AuthState {
   user: FirebaseUser | null | undefined;
   loading: boolean;
+  setUser: (user: FirebaseUser | null) => void;
+  setLoading: (loading: boolean) => void;
   logout: () => Promise<void>;
-};
+}
 
-const AuthContext = createContext<AuthContextType>({ user: undefined, loading: true, logout: async () => {} });
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<FirebaseUser | null | undefined>(undefined);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setLoading(false);
+export const useAuthStore = create<AuthState>((set) => {
+  // Set up the auth state listener once
+  if (typeof window !== "undefined") {
+    onAuthStateChanged(auth, (firebaseUser) => {
+      set({ user: firebaseUser, loading: false });
     });
-    return () => unsubscribe();
-  }, []);
+  }
 
-  const logout = async () => {
-    await auth.signOut();
+  return {
+    user: undefined,
+    loading: true,
+    setUser: (user) => set({ user }),
+    setLoading: (loading) => set({ loading }),
+    logout: async () => {
+      await auth.signOut();
+    },
   };
-
-  return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = () => useContext(AuthContext); 
+}); 

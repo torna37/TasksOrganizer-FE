@@ -15,12 +15,12 @@ import { ThemeToggle } from './ThemeToggle';
 import { TaskList } from '@/types/models';
 import { TaskListApi } from '@/services/api/taskListApi';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuthStore } from '@/hooks/use-auth';
 
 const AppSidebar: React.FC = () => {
   const [taskLists, setTaskLists] = useState<TaskList[]>([]);
   const location = useLocation();
-  const { logout } = useAuth();
+  const logout = useAuthStore((state) => state.logout);
   
   useEffect(() => {
     const fetchTaskLists = async () => {
