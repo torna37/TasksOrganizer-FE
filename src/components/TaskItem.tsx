@@ -1,66 +1,112 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Checkbox } from '@/components/ui/checkbox';
-import { formatDateShort, isToday, isPast } from '@/utils/dateUtils';
-import { Check } from 'lucide-react';
+import { Check, Clock } from 'lucide-react';
+import { format } from 'date-fns';
+import { Card, CardContent } from '@/components/ui/card';
 import { Task, TaskOccurrence } from '@/types/models';
+import { cn } from '@/lib/utils';
 
 interface TaskItemProps {
   task: Task;
   occurrence: TaskOccurrence;
   onComplete: (occurrenceId: string, completed: boolean) => void;
+  className?: string;
 }
 
-const TaskItem: React.FC<TaskItemProps> = ({ task, occurrence, onComplete }) => {
-  const isCompleted = occurrence.isCompleted;
-  const dueDate = new Date(occurrence.dueDate);
+const TaskItem: React.FC<TaskItemProps> = ({ task, occurrence, onComplete, className }) => {
+  const taskDueDate = new Date(occurrence.dueDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Calculate if task is overdue
+  const isOverdue = taskDueDate < today && !occurrence.completed;
+
+  // Format the due date
+  const dueDate = format(taskDueDate, 'MMM d');
   
-  const getStatusColor = () => {
-    if (isCompleted) return 'text-task-completed';
-    if (isPast(dueDate)) return 'text-task-overdue';
-    if (isToday(dueDate)) return 'text-task-today';
-    return 'text-task-upcoming';
+  // Handle checkbox click
+  const handleCheckboxClick = () => {
+    onComplete(occurrence.id, !occurrence.completed);
   };
-  
-  const handleChange = (checked: boolean) => {
-    onComplete(occurrence.id, checked);
-  };
-  
+
   return (
     <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.2 }}
-      className={`flex items-start gap-3 p-3 rounded-xl bg-white hover:bg-gray-50
-                ${isCompleted ? 'opacity-70' : 'opacity-100'}`}
+      transition={{
+        type: 'spring',
+        stiffness: 500,
+        damping: 30,
+        opacity: { duration: 0.2 }
+      }}
+      whileTap={{ scale: 0.98 }}
     >
-      <Checkbox
-        checked={isCompleted}
-        onCheckedChange={handleChange}
-        className="mt-1"
-      />
-      
-      <div className="flex-1">
-        <div className="flex justify-between">
-          <h3 className={`font-medium ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
-            {task.title}
-          </h3>
-          <span className={`text-sm ${getStatusColor()}`}>
-            {formatDateShort(dueDate)}
-          </span>
-        </div>
-        
-        {task.description && (
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-            {task.description}
-          </p>
+      <Card 
+        className={cn(
+          "overflow-hidden transition-all hover:shadow-md",
+          occurrence.completed && "opacity-75",
+          isOverdue && "border-red-300 dark:border-red-900",
+          className
         )}
-      </div>
+      >
+        <CardContent className="p-0">
+          <div className="flex items-center p-3">
+            <div 
+              role="checkbox"
+              aria-checked={occurrence.completed}
+              tabIndex={0}
+              onClick={handleCheckboxClick}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleCheckboxClick();
+                }
+              }}
+              className={cn(
+                "flex-shrink-0 mr-3 w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors",
+                occurrence.completed 
+                  ? "bg-primary border-primary text-primary-foreground" 
+                  : "border-muted-foreground hover:border-primary"
+              )}
+            >
+              {occurrence.completed && <Check className="h-3 w-3" />}
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <p className={cn(
+                "text-sm font-medium line-clamp-1",
+                occurrence.completed && "line-through text-muted-foreground"
+              )}>
+                {task.title}
+              </p>
+              
+              {task.description && (
+                <p className={cn(
+                  "text-xs text-muted-foreground line-clamp-1",
+                  occurrence.completed && "line-through"
+                )}>
+                  {task.description}
+                </p>
+              )}
+            </div>
+
+            <div 
+              className={cn(
+                "flex items-center text-xs ml-2",
+                isOverdue ? "text-red-500 dark:text-red-400" : "text-muted-foreground",
+                occurrence.completed && "text-muted-foreground"
+              )}
+            >
+              <Clock className="h-3 w-3 mr-1" />
+              <span>{dueDate}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </motion.div>
   );
-};
+}
 
 export default TaskItem;
