@@ -1,5 +1,4 @@
 import { tsrReactQuery } from "./tsRestClient";
-import { Task } from "@/types/models";
 
 // Export each hook separately for idiomatic usage
 export const useFindAllTasks = (taskListId: string) => {
@@ -42,6 +41,14 @@ export const useUpdateTask = () => {
 
 export const useRemoveTask = () => {
   const result = tsrReactQuery.tasks.remove.useMutation();
+  return {
+    ...result,
+    data: result.data?.body,
+  };
+};
+
+export const useCompleteTaskOccurrence = () => {
+  const result = tsrReactQuery.tasks.completeTaskOccurrence.useMutation();
   return {
     ...result,
     data: result.data?.body,

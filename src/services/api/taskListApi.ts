@@ -2,7 +2,9 @@ import { tsrReactQuery } from "./tsRestClient";
 
 // It's more idiomatic to export hooks directly for React Query usage
 export const useGetAllTaskLists = () => {
-  const result = tsrReactQuery.tasklists.findAll.useQuery({ queryKey: ["taskLists"] });
+  const result = tsrReactQuery.tasklists.findAll.useQuery({
+    queryKey: ["taskLists"],
+  });
   return {
     ...result,
     data: result.data?.body ?? [],
@@ -21,11 +23,7 @@ export const useGetTaskListById = (id: string) => {
 };
 
 export const useCreateTaskList = () => {
-  const result = tsrReactQuery.tasklists.create.useMutation();
-  return {
-    ...result,
-    data: result.data?.body,
-  };
+  return tsrReactQuery.tasklists.create.useMutation();
 };
 
 export const useUpdateTaskList = () => {
@@ -41,5 +39,16 @@ export const useRemoveTaskList = () => {
   return {
     ...result,
     data: result.data?.body,
+  };
+};
+
+export const useGetOccurrencesByTaskList = (taskListId: string) => {
+  const result = tsrReactQuery.tasklists.getOccurrencesByTaskList.useQuery({
+    queryData: { params: { taskListId } },
+    queryKey: ["taskOccurrences", taskListId],
+  });
+  return {
+    ...result,
+    data: result.data?.body ?? [],
   };
 };

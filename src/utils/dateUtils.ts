@@ -1,26 +1,27 @@
-
-import { RecurrenceRule } from "../types/models";
+import { Task, TaskOccurrence, RecurrenceRule } from "@/types/models";
 
 export const formatDate = (date: Date): string => {
   return new Date(date).toLocaleDateString("en-US", {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric'
+    weekday: "long",
+    month: "short",
+    day: "numeric",
   });
 };
 
 export const formatDateShort = (date: Date): string => {
   return new Date(date).toLocaleDateString("en-US", {
-    month: 'short',
-    day: 'numeric'
+    month: "short",
+    day: "numeric",
   });
 };
 
 export const isToday = (date: Date): boolean => {
   const today = new Date();
-  return date.getDate() === today.getDate() &&
+  return (
+    date.getDate() === today.getDate() &&
     date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear();
+    date.getFullYear() === today.getFullYear()
+  );
 };
 
 export const isPast = (date: Date): boolean => {
@@ -35,22 +36,46 @@ export const isFuture = (date: Date): boolean => {
   return date > today;
 };
 
-export const groupTasksByDate = (tasks: any[]): Record<string, any[]> => {
-  const result: Record<string, any[]> = {
-    'Overdue': [],
-    'Today': [],
-    'Upcoming': []
+export const groupTasksByDate = (tasks: Task[]): Record<string, Task[]> => {
+  const result: Record<string, Task[]> = {
+    Overdue: [],
+    Today: [],
+    Upcoming: [],
   };
 
-  tasks.forEach(task => {
+  tasks.forEach((task) => {
     const dueDate = new Date(task.dueDate);
-    
+
     if (isPast(dueDate)) {
-      result['Overdue'].push(task);
+      result["Overdue"].push(task);
     } else if (isToday(dueDate)) {
-      result['Today'].push(task);
+      result["Today"].push(task);
     } else {
-      result['Upcoming'].push(task);
+      result["Upcoming"].push(task);
+    }
+  });
+
+  return result;
+};
+
+export const groupOccurrencesByDate = (
+  occurrences: TaskOccurrence[]
+): Record<string, TaskOccurrence[]> => {
+  const result: Record<string, TaskOccurrence[]> = {
+    Overdue: [],
+    Today: [],
+    Upcoming: [],
+  };
+
+  occurrences.forEach((occurrence) => {
+    const dueDate = new Date(occurrence.dueDate);
+
+    if (isPast(dueDate)) {
+      result["Overdue"].push(occurrence);
+    } else if (isToday(dueDate)) {
+      result["Today"].push(occurrence);
+    } else {
+      result["Upcoming"].push(occurrence);
     }
   });
 
@@ -58,92 +83,114 @@ export const groupTasksByDate = (tasks: any[]): Record<string, any[]> => {
 };
 
 export const getDayName = (dayNumber: number): string => {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
   return days[dayNumber];
 };
 
 export const getMonthName = (monthNumber: number): string => {
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                 'July', 'August', 'September', 'October', 'November', 'December'];
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
   return months[monthNumber - 1];
 };
 
 export const getOrdinal = (n: number): string => {
-  const suffixes = ['th', 'st', 'nd', 'rd'];
+  const suffixes = ["th", "st", "nd", "rd"];
   const v = n % 100;
   return n + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
 };
 
-export const getHumanReadableRecurrence = (rule: RecurrenceRule): string => {
-  if (!rule) return '';
-  
-  let result = 'Every ';
-  
+export const getHumanReadableRecurrence = (
+  rule: RecurrenceRule | undefined
+): string => {
+  if (!rule) return "";
+
+  let result = "Every ";
+
   if (rule.interval > 1) {
     result += `${rule.interval} `;
   }
-  
+
   switch (rule.frequency) {
-    case 'daily':
-      result += rule.interval > 1 ? 'days' : 'day';
+    case "DAILY":
+      result += rule.interval > 1 ? "days" : "day";
       break;
-      
-    case 'weekly':
-      result += rule.interval > 1 ? 'weeks' : 'week';
-      
+
+    case "WEEKLY":
+      result += rule.interval > 1 ? "weeks" : "week";
+
       if (rule.daysOfWeek && rule.daysOfWeek.length > 0) {
         if (rule.daysOfWeek.length === 7) {
-          result = 'Every day';
+          result = "Every day";
         } else {
-          result += ' on ';
+          result += " on ";
           result += rule.daysOfWeek
-            .map(day => getDayName(day))
-            .join(', ')
-            .replace(/,([^,]*)$/, ' and$1');
+            .map((day) => getDayName(day))
+            .join(", ")
+            .replace(/,([^,]*)$/, " and$1");
         }
       }
       break;
-      
-    case 'monthly':
-      result += rule.interval > 1 ? 'months' : 'month';
-      
+
+    case "MONTHLY":
+      result += rule.interval > 1 ? "months" : "month";
+
       if (rule.daysOfMonth && rule.daysOfMonth.length > 0) {
-        result += ' on the ';
+        result += " on the ";
         result += rule.daysOfMonth
-          .map(day => getOrdinal(day))
-          .join(', ')
-          .replace(/,([^,]*)$/, ' and$1');
+          .map((day) => getOrdinal(day))
+          .join(", ")
+          .replace(/,([^,]*)$/, " and$1");
       }
-      
+
       if (rule.ordinalWeekdays && rule.ordinalWeekdays.length > 0) {
-        result += ' on the ';
+        result += " on the ";
         result += rule.ordinalWeekdays
-          .map(ow => `${getOrdinal(ow.ordinal)} ${getDayName(ow.weekday)}`)
-          .join(', ')
-          .replace(/,([^,]*)$/, ' and$1');
+          .map((ow) => `${getOrdinal(ow.ordinal)} ${getDayName(ow.weekday)}`)
+          .join(", ")
+          .replace(/,([^,]*)$/, " and$1");
       }
       break;
-      
-    case 'yearly':
-      result += rule.interval > 1 ? 'years' : 'year';
-      
+
+    case "YEARLY":
+      result += rule.interval > 1 ? "years" : "year";
+
       if (rule.monthsOfYear && rule.monthsOfYear.length > 0) {
-        result += ' in ';
+        result += " in ";
         result += rule.monthsOfYear
-          .map(month => getMonthName(month))
-          .join(', ')
-          .replace(/,([^,]*)$/, ' and$1');
-          
+          .map((month) => getMonthName(month))
+          .join(", ")
+          .replace(/,([^,]*)$/, " and$1");
+
         if (rule.daysOfMonth && rule.daysOfMonth.length > 0) {
-          result += ' on the ';
+          result += " on the ";
           result += rule.daysOfMonth
-            .map(day => getOrdinal(day))
-            .join(', ')
-            .replace(/,([^,]*)$/, ' and$1');
+            .map((day) => getOrdinal(day))
+            .join(", ")
+            .replace(/,([^,]*)$/, " and$1");
         }
       }
       break;
   }
-  
+
   return result;
 };

@@ -1,67 +1,53 @@
-
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import TaskListCard from '@/components/TaskListCard';
-import TaskListCreationModal from '@/components/TaskListCreationModal';
-import { TaskListApi } from '@/services/api/taskListApi';
-import { TaskList } from '@/types/models';
-import { auth } from '@/services/firebase';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import TaskListCard from "@/components/TaskListCard";
+import TaskListCreationModal from "@/components/TaskListCreationModal";
+import { TaskList, TaskListCreation } from "@/types/models";
+import { auth } from "@/services/firebase";
+import {
+  useCreateTaskList,
+  useGetAllTaskLists,
+} from "@/services/api/taskListApi";
 
 const TaskListDashboard: React.FC = () => {
-  const [taskLists, setTaskLists] = useState<TaskList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    loadTaskLists();
-  }, []);
-
-
+  const { data: taskLists, isLoading: listsLoading, error } = useGetAllTaskLists();
+  // create task list
+  const { mutateAsync: createTaskList, isPending: isCreating } =
+    useCreateTaskList();
+    
   const user = auth.currentUser;
 
-  useEffect(() => { 
+  useEffect(() => {
+    setIsLoading(listsLoading || isCreating);
+  }, [listsLoading, isCreating]);
+
+  useEffect(() => {
     if (user) {
       console.log("user: ", user);
     }
-  } )
+  }, [user]);
 
-  const loadTaskLists = async () => {
+  const handleCreateList = async (taskList: TaskListCreation) => {
     try {
-      setIsLoading(true);
-      const lists = await TaskListApi.getUserTaskLists();
-      setTaskLists(lists);
-    } catch (error) {
-      console.error('Failed to load task lists:', error);
+      await createTaskList({ body: taskList });
       toast({
-        title: 'Error',
-        description: 'Failed to load your task lists. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateList = async (taskList: Omit<TaskList, 'id' | 'createdAt'>) => {
-    try {
-      const newList = await TaskListApi.createTaskList(taskList);
-      setTaskLists([...taskLists, newList]);
-      toast({
-        title: 'Success',
-        description: 'Task list created successfully',
+        title: "Success",
+        description: "Task list created successfully",
       });
     } catch (error) {
-      console.error('Failed to create task list:', error);
+      console.error("Failed to create task list:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to create task list. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to create task list. Please try again.",
+        variant: "destructive",
       });
       throw error;
     }
@@ -83,14 +69,14 @@ const TaskListDashboard: React.FC = () => {
 
   return (
     <div className="container py-8 px-4 mx-auto max-w-6xl">
-      <motion.div 
+      <motion.div
         className="flex justify-between items-center mb-8"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
         <h1 className="text-3xl font-bold">Your Task Lists</h1>
-        <Button 
+        <Button
           onClick={() => setIsCreateModalOpen(true)}
           className="rounded-xl"
         >
@@ -102,11 +88,14 @@ const TaskListDashboard: React.FC = () => {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-40 rounded-2xl bg-gray-100 animate-pulse" />
+            <div
+              key={i}
+              className="h-40 rounded-2xl bg-gray-100 animate-pulse"
+            />
           ))}
         </div>
       ) : taskLists.length > 0 ? (
-        <motion.div 
+        <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           variants={containerVariants}
           initial="hidden"
@@ -121,7 +110,7 @@ const TaskListDashboard: React.FC = () => {
           ))}
         </motion.div>
       ) : (
-        <motion.div 
+        <motion.div
           className="text-center py-16"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -130,7 +119,7 @@ const TaskListDashboard: React.FC = () => {
           <p className="text-muted-foreground mb-6">
             Create your first task list to get started
           </p>
-          <Button 
+          <Button
             onClick={() => setIsCreateModalOpen(true)}
             className="rounded-xl"
           >
