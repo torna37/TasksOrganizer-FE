@@ -17,13 +17,16 @@ import { groupTasksByDate, groupOccurrencesByDate } from "@/utils/dateUtils";
 import {
   useGetTaskListById,
   useGetOccurrencesByTaskList,
+  useRemoveTaskList, // Import the new hook
 } from "@/services/api/taskListApi";
 import {
   useFindAllTasks,
   useCreateTask,
   useCompleteTaskOccurrence,
 } from "@/services/api/taskApi";
-import { TaskOccurrence, TaskCreation } from "@/types/models";
+import { TaskOccurrence, TaskCreation, Role } from "@/types/models";
+import { useGetMe } from "@/services/api/userApi";
+import { RoleEnum } from "@renzobeux/taskorganizer-api-contract";
 
 const TaskListView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +36,7 @@ const TaskListView: React.FC = () => {
   const [filterBy, setFilterBy] = useState<"all" | "assigned">("all");
 
   // API hooks
+  const { data: me, isLoading: isMeLoading } = useGetMe();
   const { data: taskList, isLoading: isTaskListLoading } = useGetTaskListById(
     id || ""
   );
@@ -45,8 +49,10 @@ const TaskListView: React.FC = () => {
 
   const createTaskMutation = useCreateTask();
   const completeTaskOccurrenceMutation = useCompleteTaskOccurrence();
+  const removeTaskListMutation = useRemoveTaskList(); // Initialize the hook
 
-  const isLoading = isTaskListLoading || isTasksLoading || isOccurrencesLoading;
+  const isLoading =
+    isTaskListLoading || isTasksLoading || isOccurrencesLoading || isMeLoading;
 
   const handleCreateTask = async (taskData: TaskCreation) => {
     if (!id) return;
@@ -82,6 +88,29 @@ const TaskListView: React.FC = () => {
       toast({
         title: "Error",
         description: "Failed to complete task.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteTaskList = async () => {
+    if (!id) return;
+    // Add a confirmation dialog here for better UX
+    if (!window.confirm("Are you sure you want to delete this task list?")) {
+      return;
+    }
+    try {
+      await removeTaskListMutation.mutateAsync({ params: { id } });
+      toast({
+        title: "Success",
+        description: "Task list deleted successfully.",
+        variant: "success",
+      });
+      navigate("/"); // Navigate back to the dashboard or a relevant page
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete task list.",
         variant: "destructive",
       });
     }
@@ -130,6 +159,23 @@ const TaskListView: React.FC = () => {
           <h1 className="text-3xl font-bold">
             {isLoading ? "Loading..." : taskList?.name}
           </h1>
+          {/* Add delete button if the user is the owner - Assuming taskList has an isOwner field or similar */}
+          {taskList &&
+            me &&
+            taskList.memberships.find((m) => m.userId === me.id).role ===
+              RoleEnum.Enum.OWNER && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDeleteTaskList}
+                className="ml-4 rounded-lg"
+                disabled={removeTaskListMutation.isPending}
+              >
+                {removeTaskListMutation.isPending
+                  ? "Deleting..."
+                  : "Delete List"}
+              </Button>
+            )}
         </div>
 
         <div className="flex gap-3">

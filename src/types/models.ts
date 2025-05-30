@@ -1,5 +1,6 @@
-import type {
+import {
   contract,
+  RoleEnum,
   TaskListCreateSchema,
   TaskOccurrenceSchema,
   RecurrenceRuleSchema,
@@ -20,6 +21,8 @@ export type TaskCreation = Omit<Task, "id" | "createdAt">;
 export type RecurrenceRule = z.infer<typeof RecurrenceRuleSchema>;
 
 export type TaskOccurrence = z.infer<typeof TaskOccurrenceSchema>;
+
+export type Role = z.infer<typeof RoleEnum>;
 
 // If you have additional UI-only fields, you can extend these types:
 // export type TaskListUI = TaskList & { memberCount?: number };

@@ -1,8 +1,13 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { useThemeEffect } from "@/hooks/use-theme";
 import { useSidebarEffect } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
@@ -12,8 +17,7 @@ import AllTasksPage from "./pages/AllTasksPage";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { useAuthStore } from "@/hooks/use-auth";
-
-const queryClient = new QueryClient();
+import { tsrReactQuery } from "./services/api/tsRestClient";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
@@ -46,51 +50,49 @@ const App = () => {
   useThemeEffect();
   useSidebarEffect();
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppLayout>
-            <Routes>
-              <Route
-                path="/login"
-                element={
-                  <OnlyGuest>
-                    <Login />
-                  </OnlyGuest>
-                }
-              />
-              <Route
-                path="/"
-                element={
-                  <RequireAuth>
-                    <TaskListDashboard />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/all-tasks"
-                element={
-                  <RequireAuth>
-                    <AllTasksPage />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/task-list/:id"
-                element={
-                  <RequireAuth>
-                    <TaskListView />
-                  </RequireAuth>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AppLayout>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AppLayout>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <OnlyGuest>
+                  <Login />
+                </OnlyGuest>
+              }
+            />
+            <Route
+              path="/"
+              element={
+                <RequireAuth>
+                  <TaskListDashboard />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/all-tasks"
+              element={
+                <RequireAuth>
+                  <AllTasksPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/task-list/:id"
+              element={
+                <RequireAuth>
+                  <TaskListView />
+                </RequireAuth>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AppLayout>
+      </BrowserRouter>
+    </TooltipProvider>
   );
 };
 

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { TaskList } from '@/types/models';
+import { TaskList, TaskListCreation } from "@/types/models";
 
 interface TaskListCreationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (taskList: Omit<TaskList, 'id' | 'createdAt'>) => Promise<void>;
+  onSubmit: (taskList: TaskListCreation) => Promise<void>;
 }
 
 const TaskListCreationModal: React.FC<TaskListCreationModalProps> = ({
@@ -25,13 +24,13 @@ const TaskListCreationModal: React.FC<TaskListCreationModalProps> = ({
   onOpenChange,
   onSubmit,
 }) => {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const resetForm = () => {
-    setName('');
-    setDescription('');
+    setName("");
+    setDescription("");
   };
 
   const handleSubmit = async () => {
@@ -46,7 +45,7 @@ const TaskListCreationModal: React.FC<TaskListCreationModalProps> = ({
       });
       resetForm();
     } catch (error) {
-      console.error('Failed to create task list:', error);
+      console.error("Failed to create task list:", error);
     } finally {
       setIsSubmitting(false);
       onOpenChange(false);
@@ -54,10 +53,10 @@ const TaskListCreationModal: React.FC<TaskListCreationModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen) resetForm();
-      onOpenChange(isOpen);
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={onOpenChange} // Pass the prop directly for diagnostics
+    >
       <DialogContent className="sm:max-w-[500px] rounded-2xl">
         <DialogHeader>
           <DialogTitle>Create New Task List</DialogTitle>
@@ -92,15 +91,15 @@ const TaskListCreationModal: React.FC<TaskListCreationModalProps> = ({
         </div>
 
         <DialogFooter>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             className="rounded-lg"
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={!name.trim() || isSubmitting}
             className="rounded-lg"
           >

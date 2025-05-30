@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TaskListCard from "@/components/TaskListCard";
 import TaskListCreationModal from "@/components/TaskListCreationModal";
-import { TaskList, TaskListCreation } from "@/types/models";
+import { TaskListCreation } from "@/types/models";
 import { auth } from "@/services/firebase";
 import {
   useCreateTaskList,
@@ -14,34 +14,44 @@ import {
 } from "@/services/api/taskListApi";
 
 const TaskListDashboard: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { data: taskLists, isLoading: listsLoading, error } = useGetAllTaskLists();
+  const {
+    data: taskLists,
+    isLoading: listsLoading,
+    error,
+  } = useGetAllTaskLists();
+
   // create task list
   const { mutateAsync: createTaskList, isPending: isCreating } =
     useCreateTaskList();
-    
-  const user = auth.currentUser;
 
-  useEffect(() => {
-    setIsLoading(listsLoading || isCreating);
-  }, [listsLoading, isCreating]);
+  const user = auth.currentUser;
 
   useEffect(() => {
     if (user) {
       console.log("user: ", user);
     }
-  }, [user]);
+    if (error) {
+      console.error("Error fetching task lists:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load task lists.",
+        variant: "destructive",
+      });
+    }
+  }, [user, error, toast]);
 
-  const handleCreateList = async (taskList: TaskListCreation) => {
+  const handleCreateList = async (taskListData: TaskListCreation) => {
+    // Renamed taskList to taskListData to avoid conflict
     try {
-      await createTaskList({ body: taskList });
+      await createTaskList({ body: taskListData });
       toast({
         title: "Success",
         description: "Task list created successfully",
       });
+      // setIsCreateModalOpen(false); // Optionally close modal on success
     } catch (error) {
       console.error("Failed to create task list:", error);
       toast({
@@ -67,6 +77,8 @@ const TaskListDashboard: React.FC = () => {
     },
   };
 
+  const actualIsLoading = listsLoading;
+
   return (
     <div className="container py-8 px-4 mx-auto max-w-6xl">
       <motion.div
@@ -85,7 +97,7 @@ const TaskListDashboard: React.FC = () => {
         </Button>
       </motion.div>
 
-      {isLoading ? (
+      {actualIsLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
             <div
@@ -94,7 +106,7 @@ const TaskListDashboard: React.FC = () => {
             />
           ))}
         </div>
-      ) : taskLists.length > 0 ? (
+      ) : taskLists && taskLists.length > 0 ? ( // Added check for taskLists being defined
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           variants={containerVariants}
